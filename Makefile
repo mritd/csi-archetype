@@ -1,7 +1,7 @@
 BUILD_VERSION   := $(shell cat version)
 BUILD_DATE      := $(shell date "+%F %T")
 COMMIT_SHA1     := $(shell git rev-parse HEAD)
-CSI_NAME		:= "csi-archetype"
+CSI_NAME		:= csi-archetype
 
 all: clean
 	gox -osarch="darwin/amd64 linux/386 linux/amd64 linux/arm" \
