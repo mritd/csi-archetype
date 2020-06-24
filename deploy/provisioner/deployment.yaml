@@ -1,0 +1,71 @@
+# This YAML file demonstrates how to deploy the external
+# provisioner for use with the mock CSI driver. It
+# depends on the RBAC definitions from rbac.yaml.
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: csi-provisioner
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      external-provisioner: csi-provisioner
+  template:
+    metadata:
+      labels:
+        external-provisioner: csi-provisioner
+    spec:
+      # debug only(connect to dlv 2345 port)
+      #hostNetwork: true
+      serviceAccountName: csi-provisioner
+      containers:
+        - name: csi-provisioner
+          image: quay.io/k8scsi/csi-provisioner:v1.6.0
+          args:
+            - "--v=5"
+            - "--csi-address=$(CSI_ENDPOINT)"
+            - "--enable-leader-election"
+          env:
+            - name: CSI_ENDPOINT
+              value: /csi/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+        - name: csi-archetype
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+          image: gozap/csi-nfs:v1.0.2
+          args:
+            - "--nodeid=$(NODE_ID)"
+            - "--endpoint=$(CSI_ENDPOINT)"
+            - "--nfsserver=$(NFS_SERVER)"
+            - "--nfssharepoint=$(NFS_SHARE)"
+            - "--nfslocalmountpoint=$(NFS_LOCAL_MOUNT)"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["bash","-c","umount ${NFS_LOCAL_MOUNT}"]
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: CSI_ENDPOINT
+              value: unix:///csi/csi.sock
+            - name: NFS_LOCAL_MOUNT
+              value: /archetype
+            # replace with real archetype server config
+            - name: NFS_SERVER
+              value: 172.16.10.50
+            - name: NFS_SHARE
+              value: /mnt/freenas/kubernetes
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+      volumes:
+        - name: socket-dir
+          emptyDir: {}
+

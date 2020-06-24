@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-pvc
+spec:
+  storageClassName: csi-archetype
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-archetype
+  labels:
+    app: test-nfs
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: test-nfs
+  template:
+    metadata:
+      labels:
+        app: test-nfs
+    spec:
+      containers:
+      - name: test-archetype
+        image: nginx:1.17.8-alpine
+        volumeMounts:
+        - name: archetype-pvc
+          mountPath: /data
+      volumes:
+      - name: archetype-pvc
+        persistentVolumeClaim:
+          claimName: test-pvc
+
