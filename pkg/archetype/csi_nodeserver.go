@@ -10,7 +10,14 @@ import (
 )
 
 type nodeServer struct {
-	Driver  *archetype
+	Driver *archetype
+	// Users add fields as needed.
+	//
+	// In the NFS CSI implementation, we need to mount the nfs server to the local,
+	// so we need a mounter instance.
+	//
+	// In the CSI implementation of other storage vendors, you may need to add other
+	// instances, such as the api client of Alibaba Cloud Storage.
 	mounter mount.Interface
 }
 

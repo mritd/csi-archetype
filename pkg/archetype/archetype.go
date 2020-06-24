@@ -7,10 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	driverName = "csi-archetype"
-)
-
 type archetype struct {
 	name     string
 	nodeID   string
@@ -26,8 +22,8 @@ type archetype struct {
 	cscap []*csi.ControllerServiceCapability
 }
 
-func NewCSIDriver(version, nodeID, endpoint, parameter1 string, parameter2 int, parameter3 time.Duration) *archetype {
-	logrus.Infof("Driver: %s version: %s", driverName, version)
+func NewCSIDriver(name, version, nodeID, endpoint, parameter1 string, parameter2 int, parameter3 time.Duration) *archetype {
+	logrus.Infof("Driver: %s version: %s", name, version)
 
 	// Add some check here
 	if parameter1 == "" {
@@ -35,7 +31,7 @@ func NewCSIDriver(version, nodeID, endpoint, parameter1 string, parameter2 int, 
 	}
 
 	n := &archetype{
-		name:     driverName,
+		name:     name,
 		nodeID:   nodeID,
 		version:  version,
 		endpoint: endpoint,
